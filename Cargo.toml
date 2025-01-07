@@ -1,5 +1,3 @@
 [workspace]
-members = [
-    "virt-fwk",
-    "examples/*",
-]
+members = ["virt-fwk", "examples/*"]
+resolver = "2"

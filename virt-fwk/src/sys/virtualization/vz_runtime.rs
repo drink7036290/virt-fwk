@@ -155,10 +155,12 @@ extern_methods!(
 unsafe impl Send for VZVirtualMachine {}
 unsafe impl Sync for VZVirtualMachine {}
 
+
 extern_protocol!(
     /// # Safety
     ///
     /// This delegate should never leak outside this crate.
+    #[allow(clippy::missing_safety_doc)]
     pub(crate) unsafe trait VZVirtualMachineDelegate: NSObjectProtocol {
         #[optional]
         #[method(guestDidStopVirtualMachine:)]

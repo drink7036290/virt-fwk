@@ -1,18 +1,19 @@
-use std::ffi::c_void;
+//use std::ffi::c_void;
 
 use block2::ConcreteBlock;
 use crossbeam_channel::{bounded, Receiver, Sender};
-use objc2::rc::{autoreleasepool, Id, Shared};
-use objc2::runtime::{NSObject, NSObjectProtocol, Object};
+use objc2::rc::{/* autoreleasepool,  */Id, Shared};
+//use objc2::runtime::{NSObject, NSObjectProtocol, Object};
 use objc2::ClassType;
-use objc2::{declare_class, msg_send_id};
+//use objc2::{declare_class, msg_send_id};
 
 use crate::sealed::UnsafeGetId;
-use crate::sys::foundation::{NSError, NSKeyValueObservingOptions, NSString};
+use crate::sys::foundation::NSError/* {, NSKeyValueObservingOptions, NSString} */;
 use crate::sys::virtualization::VZVirtualMachine;
 
 use crate::configuration::VirtualMachineConfiguration;
 use crate::sys::queue::{Queue, QueueAttribute};
+use std::fmt::Display;
 
 #[derive(Debug)]
 pub enum VirtualMachineState {
@@ -26,14 +27,29 @@ pub enum VirtualMachineState {
     Stopping = 7,
     Unknown = -1,
 }
+impl Display for VirtualMachineState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            VirtualMachineState::Stopped => write!(f, "Stopped"),
+            VirtualMachineState::Running => write!(f, "Running"),
+            VirtualMachineState::Paused => write!(f, "Paused"),
+            VirtualMachineState::Error => write!(f, "Error"),
+            VirtualMachineState::Starting => write!(f, "Starting"),
+            VirtualMachineState::Pausing => write!(f, "Pausing"),
+            VirtualMachineState::Resuming => write!(f, "Resuming"),
+            VirtualMachineState::Stopping => write!(f, "Stopping"),
+            VirtualMachineState::Unknown => write!(f, "Unknown"),
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct VirtualMachine {
     machine: Id<VZVirtualMachine, Shared>,
     queue: Queue,
-    observer: Id<VirtualMachineStateObserver, Shared>,
+//    observer: Id<VirtualMachineStateObserver, Shared>,
 
-    notifier: Sender<VirtualMachineState>,
+    _notifier: Sender<VirtualMachineState>,
     pub state_notifications: Receiver<VirtualMachineState>,
 }
 
@@ -58,18 +74,18 @@ impl VirtualMachine {
             );
 
             let (sender, receiver) = bounded(1);
-            let observer = VirtualMachineStateObserver::new();
+/*             let observer = VirtualMachineStateObserver::new();
 
-            let key = NSString::from_str("state");
+            let key = NSString::from_str("state"); */
 
-            let mut vm = VirtualMachine {
+            /* let mut vm =  */VirtualMachine {
                 machine,
                 queue,
-                observer,
-                notifier: sender,
+//                observer,
+                _notifier: sender,
                 state_notifications: receiver,
-            };
-            let vm_ptr: *mut c_void = &mut vm as *mut _ as *mut c_void;
+            } /* ; */
+/*             let vm_ptr: *mut c_void = &mut vm as *mut _ as *mut c_void;
 
             vm.machine.addObserver_forKeyPath_options_context(
                 &vm.observer,
@@ -79,6 +95,7 @@ impl VirtualMachine {
             );
 
             vm
+*/
         }
     }
 
@@ -164,7 +181,7 @@ impl VirtualMachine {
 
     pub fn can_start(&self) -> bool {
         self.queue
-            .exec_sync(move || unsafe { self.machine.canStart() })
+            .exec_sync(move || unsafe { println!("can_start: {:?}", self.machine.canStart()); self.machine.canStart() })
     }
 
     pub fn can_stop(&self) -> bool {
@@ -204,7 +221,7 @@ impl VirtualMachine {
         }
     }
 }
-
+/*
 impl Drop for VirtualMachine {
     fn drop(&mut self) {
         let key_path = NSString::from_str("state");
@@ -243,7 +260,8 @@ declare_class!(
                     let vm: &mut VirtualMachine = &mut *(context as *mut VirtualMachine);
                     let _ = vm.state_notifications.try_recv();
                     // TODO: There's a race here which could potentially cause us to mis updates. And potentially send a particular state change twice.
-                    vm.notifier.send(vm.state()).unwrap();
+                    println!("vm.state(): {:?}", vm.state());
+                    vm.notifier.send(vm.state()).expect("Failed to send VM state");
                 }
             }
         }
@@ -261,3 +279,4 @@ impl VirtualMachineStateObserver {
         unsafe { msg_send_id![Self::alloc(), init] }
     }
 }
+*/

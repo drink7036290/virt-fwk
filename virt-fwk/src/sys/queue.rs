@@ -10,30 +10,30 @@ use block2::Block;
 use objc2::{Encode, Encoding, RefEncode};
 
 #[repr(C)]
-pub struct dispatch_object_s {
+pub struct DispatchObjectS {
     _private: [u8; 0],
 }
 
-unsafe impl Encode for dispatch_object_s {
+unsafe impl Encode for DispatchObjectS {
     const ENCODING: Encoding = Encoding::Object;
 }
 
-unsafe impl RefEncode for dispatch_object_s {
+unsafe impl RefEncode for DispatchObjectS {
     const ENCODING_REF: Encoding = Encoding::Object;
 }
 
 #[allow(non_camel_case_types)]
 pub type dispatch_function_t = extern "C" fn(*mut c_void);
 #[allow(non_camel_case_types)]
-pub type dispatch_object_t = *mut dispatch_object_s;
+pub type dispatch_object_t = *mut DispatchObjectS;
 #[allow(non_camel_case_types)]
-pub type dispatch_queue_t = *mut dispatch_object_s;
+pub type dispatch_queue_t = *mut DispatchObjectS;
 #[allow(non_camel_case_types)]
-pub type dispatch_queue_attr_t = *const dispatch_object_s;
+pub type dispatch_queue_attr_t = *const DispatchObjectS;
 
 extern "C" {
-    static _dispatch_main_q: dispatch_object_s;
-    static _dispatch_queue_attr_concurrent: dispatch_object_s;
+    static _dispatch_main_q: DispatchObjectS;
+    static _dispatch_queue_attr_concurrent: DispatchObjectS;
 
     pub fn dispatch_queue_create(
         label: *const c_char,
@@ -60,7 +60,7 @@ extern "C" {
 }
 
 pub const DISPATCH_QUEUE_SERIAL: dispatch_queue_attr_t = 0 as dispatch_queue_attr_t;
-pub static DISPATCH_QUEUE_CONCURRENT: &dispatch_object_s =
+pub static DISPATCH_QUEUE_CONCURRENT: &DispatchObjectS =
     unsafe { &_dispatch_queue_attr_concurrent };
 
 /// An error indicating a wait timed out.
@@ -90,7 +90,7 @@ where
 
     let closure = Box::new(closure);
     let func: extern "C" fn(Box<F>) = work_execute_closure::<F>;
-    unsafe { (mem::transmute(closure), mem::transmute(func)) }
+    unsafe { (mem::transmute::<std::boxed::Box<F>, *mut std::ffi::c_void>(closure), mem::transmute::<extern "C" fn(std::boxed::Box<F>), extern "C" fn(*mut std::ffi::c_void)>(func)) }
 }
 
 fn context_and_sync_function<F>(closure: &mut Option<F>) -> (*mut c_void, dispatch_function_t)
@@ -108,7 +108,7 @@ where
 
     let context: *mut Option<F> = closure;
     let func: extern "C" fn(&mut Option<F>) = work_read_closure::<F>;
-    unsafe { (context as *mut c_void, mem::transmute(func)) }
+    unsafe { (context as *mut c_void, mem::transmute::<for<'a> extern "C" fn(&'a mut std::option::Option<F>), extern "C" fn(*mut std::ffi::c_void)>(func)) }
 }
 
 /// The type of a dispatch queue.

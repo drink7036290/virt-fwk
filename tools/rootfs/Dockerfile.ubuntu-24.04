@@ -36,9 +36,9 @@ RUN echo "" > /etc/machine-id && mkdir -p /var/lib/dbus/ && echo "" > /var/lib/d
 # Configure SSHD
 RUN mkdir -p /var/empty/sshd # sshd needs this for some reason
 
-RUN id -u ubuntu 2>/dev/null || \
-    (useradd --create-home --shell /bin/bash --groups sudo --comment "Default Ubuntu User" ubuntu && \
-    echo "ubuntu:password" | chpasswd)
+RUN userdel -r ubuntu || true
+RUN useradd --create-home --shell /bin/bash --groups sudo --comment "Default Ubuntu User" ubuntu && \
+    echo "ubuntu:password" | chpasswd
 
 WORKDIR /builder
 

@@ -14,5 +14,9 @@ block2 = "0.2.0-alpha.8"
 crossbeam-channel = "0.5.8"
 objc2 = "0.3.0-beta.5"
 
+[features]
+not_implemented_yet = []
+apple = []
+
 [package.metadata.docs.rs]
 default-target = "x86_64-apple-darwin"
