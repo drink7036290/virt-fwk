@@ -12,7 +12,7 @@ mkfs.ext4 "$BUILDER_OBJ/$DISTRO.img"
 mkdir -p "$ROOTFS_MNT"
 mount "$BUILDER_OBJ/$DISTRO.img" "$ROOTFS_MNT"
 
-for d in bin etc home lib lib64 opt root sbin usr var; do tar c "/$d" | tar x -C "$ROOTFS_MNT"; done
+for d in bin etc home lib opt root sbin usr var; do tar c "/$d" | tar x -C "$ROOTFS_MNT"; done
 for dir in run proc sys; do mkdir "$ROOTFS_MNT/${dir}"; done
 
 # Override the nameserver to Cloudflare for simplicity
