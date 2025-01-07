@@ -1,4 +1,4 @@
-DISTRO:=ubuntu-22.04
+DISTRO:=ubuntu-24.04
 KERNEL_VERSION:=6.1.26
 
 .PHONY: build-kernel
@@ -17,11 +17,11 @@ build-initramfs:
 build-rootfs:
 	@docker volume create kernel-build-cache
 	@docker build -f tools/rootfs/Dockerfile.${DISTRO} -t rootfs-${DISTRO} .
-	@docker run -it --mount source=kernel-build-cache,target=/builder/obj -v $(shell pwd):/app  --privileged --cap-add=CAP_MKNOD rootfs-${DISTRO}
+	@docker run -it --mount source=kernel-build-cache,target=/builder/obj -v $(shell pwd):/app --privileged --cap-add=CAP_MKNOD rootfs-${DISTRO}
 
 .PHONY: build-shell
 build-shell:
-	@docker run -it --mount source=kernel-build-cache,target=/builder/obj -v $(shell pwd):/app --entrypoint bash  kernel-builder
+	@docker run -it --mount source=kernel-build-cache,target=/builder/obj -v $(shell pwd):/app --entrypoint bash kernel-builder
 
 .PHONY: debug
 debug:

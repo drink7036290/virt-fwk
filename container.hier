@@ -1,0 +1,11 @@
+/app   # bind mount with host pwd
+
+/builder
+├── obj/    # named volume with Docker
+│   ├── linux-x.y.z   # Image
+│   └── initramfs     # initramfs
+├── linux-x.y.z/      # from curl
+├── busybox-a.b.c/    # from curl
+├── ...     # copied from tools/
+
+initramfs/{bin,sbin,etc,proc,sys,usr/{bin,sbin}}

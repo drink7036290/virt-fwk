@@ -1,0 +1,21 @@
+target
+.tmp
+assets
+
+# Ignore node_modules
+node_modules
+
+# Ignore Git
+.git
+
+# Exclude any .DS_Store file (macOS metadata)
+.DS_Store
+
+# Exclude all .log files anywhere
+*.log
+
+# Exclude the entire dist/ directory
+dist/
+
+# Exclude all .env files in any directory
+**/*.env
