@@ -1,7 +1,7 @@
 FROM ubuntu:24.04
 
 ARG KERNEL_CHANNEL=v6.x
-ARG KERNEL_VERSION=6.1.26
+ARG KERNEL_VERSION=6.1.102
 ARG BUSYBOX_VERSION=1.37.0
 
 # persists inside the final container

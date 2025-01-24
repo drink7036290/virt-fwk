@@ -1,5 +1,5 @@
 DISTRO:=ubuntu-24.04
-KERNEL_VERSION:=6.1.26
+KERNEL_VERSION:=6.1.102
 
 .PHONY: build-kernel
 build-kernel:

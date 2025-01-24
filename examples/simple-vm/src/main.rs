@@ -142,7 +142,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         process::exit(1);
     }
 
+    println!("Starting VM...");
     vm.start()?;
+    println!("VM started!");
 
     let termios = get_terminal_attr(&std_in)?;
     set_raw_mode(&std_in)?;
@@ -150,6 +152,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let ctrl_c_events = ctrl_channel()?;
     let state_changes = vm.get_state_channel();
 
+    println!("Waiting for VM state changes...");
     loop {
         select! {
             recv(state_changes) -> state => {
@@ -159,7 +162,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                         println!("Virtual machine has stopped, exiting!");
                         break;
                     }
-                    _ => {}
+                    _ => {
+                        println!("Virtual machine state: {:?}", state);
+                    }
                 }
             }
             recv(ctrl_c_events) -> _ => {
