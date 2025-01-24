@@ -36,11 +36,15 @@ impl LinuxBootLoader {
 
     pub fn set_initrd(&self, initrd_url: &str) {
         unsafe {
-            let initrd_url = NSURL::file_url_with_path(initrd_url, false)
+            if initrd_url.is_empty() {
+                self.inner.setInitialRamdiskURL(None);
+            } else {
+                let initrd_url = NSURL::file_url_with_path(initrd_url, false)
                 .absolute_url()
                 .unwrap();
 
-            self.inner.setInitialRamdiskURL(Some(&initrd_url));
+                self.inner.setInitialRamdiskURL(Some(&initrd_url));
+            };
         }
     }
 

@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         )
         .arg(
             arg!(-i --initrd <PATH> "Path to initrd.")
-                .required(true)
+                .required(false)
                 .value_parser(value_parser!(PathBuf)),
         )
         .arg(
@@ -60,10 +60,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         .get_one::<PathBuf>("kernel")
         .expect("Kernel parameter should be provided!");
 
-    let initrd = matches
-        .get_one::<PathBuf>("initrd")
-        .expect("A initrd file is required!");
-
     let command_line = matches.get_one::<String>("commandline").unwrap();
 
     let disks = matches
@@ -86,11 +82,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         .into_string()
         .unwrap();
 
-    let initrd_url = canonicalize(initrd)
-        .unwrap()
-        .into_os_string()
-        .into_string()
-        .unwrap();
+    let initrd_url = matches.get_one::<PathBuf>("initrd")
+        .map_or(String::new(), |v| {
+            canonicalize(v)
+            .unwrap()
+            .into_os_string()
+            .into_string()
+            .unwrap()
+        });
 
     let boot_loader = vz::LinuxBootLoader::new(&kernel_url, &initrd_url, command_line);
 
@@ -115,7 +114,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .unwrap();
 
             let attachment = vz::DiskImageStorageDeviceAttachment::new(&path, false);
-            
+
             vz::VirtioBlockDeviceConfiguration::new(attachment)
         })
         .collect();
