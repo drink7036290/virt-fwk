@@ -5,13 +5,13 @@ KERNEL_VERSION:=6.1.26
 build-kernel:
 	@docker volume create kernel-build-cache
 	@docker build -f tools/Dockerfile -t kernel-builder .
-	@docker run -t --mount source=kernel-build-cache,target=/builder/obj -v $(shell pwd):/app kernel-builder kernel
+	@docker run -it --mount source=kernel-build-cache,target=/builder/obj -v $(shell pwd):/app kernel-builder
 
 .PHONY: build-initramfs
 build-initramfs:
 	@docker volume create kernel-build-cache
 	@docker build -f tools/Dockerfile -t kernel-builder .
-	@docker run -t --mount source=kernel-build-cache,target=/builder/obj -v $(shell pwd):/app kernel-builder initramfs
+	@docker run -it --mount source=kernel-build-cache,target=/builder/obj -v $(shell pwd):/app kernel-builder initramfs
 
 .PHONY: build-rootfs
 build-rootfs:
