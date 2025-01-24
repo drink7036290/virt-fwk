@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         )
         .arg(
             arg!(-i --initrd <PATH> "Path to initrd.")
-                .required(true)
+                .required(false)
                 .value_parser(value_parser!(PathBuf)),
         )
         .arg(
@@ -60,10 +60,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         .get_one::<PathBuf>("kernel")
         .expect("Kernel parameter should be provided!");
 
-    let initrd = matches
-        .get_one::<PathBuf>("initrd")
-        .expect("A initrd file is required!");
-
     let command_line = matches.get_one::<String>("commandline").unwrap();
 
     let disks = matches
@@ -86,11 +82,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         .into_string()
         .unwrap();
 
-    let initrd_url = canonicalize(initrd)
-        .unwrap()
-        .into_os_string()
-        .into_string()
-        .unwrap();
+    let initrd_url = matches.get_one::<PathBuf>("initrd")
+        .map_or(String::new(), |v| {
+            canonicalize(v)
+            .unwrap()
+            .into_os_string()
+            .into_string()
+            .unwrap()
+        });
 
     let boot_loader = vz::LinuxBootLoader::new(&kernel_url, &initrd_url, command_line);
 
@@ -115,7 +114,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .unwrap();
 
             let attachment = vz::DiskImageStorageDeviceAttachment::new(&path, false);
-            
+
             vz::VirtioBlockDeviceConfiguration::new(attachment)
         })
         .collect();
@@ -143,7 +142,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         process::exit(1);
     }
 
+    println!("Starting VM...");
     vm.start()?;
+    println!("VM started!");
 
     let termios = get_terminal_attr(&std_in)?;
     set_raw_mode(&std_in)?;
@@ -151,6 +152,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let ctrl_c_events = ctrl_channel()?;
     let state_changes = vm.get_state_channel();
 
+    println!("Waiting for VM state changes...");
     loop {
         select! {
             recv(state_changes) -> state => {
@@ -160,7 +162,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                         println!("Virtual machine has stopped, exiting!");
                         break;
                     }
-                    _ => {}
+                    _ => {
+                        println!("Virtual machine state: {:?}", state);
+                    }
                 }
             }
             recv(ctrl_c_events) -> _ => {
