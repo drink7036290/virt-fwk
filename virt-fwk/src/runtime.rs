@@ -179,6 +179,94 @@ impl VirtualMachine {
         Ok(())
     }
 
+    /// Pause the running VM synchronously.
+    pub fn pause(&self) -> Result<(), String> {
+        // (Optional) check if can_pause is true.
+        // if !self.can_pause() {
+        //     return Err("Cannot pause the VM in its current state.".into());
+        // }
+
+        let (tx, rx) = std::sync::mpsc::channel();
+
+        // We create a block that calls `pauseWithCompletionHandler:`
+        let dispatch_block = ConcreteBlock::new(move || {
+            let inner_tx = tx.clone();
+            unsafe {
+                let completion_handler = ConcreteBlock::new(move |err: *mut NSError| {
+                    if err.is_null() {
+                        // Pausing succeeded
+                        inner_tx.send(Ok(())).unwrap();
+                    } else {
+                        // Pausing failed, send error
+                        inner_tx
+                            .send(Err(err.as_mut().unwrap().localized_description()))
+                            .unwrap();
+                    }
+                });
+                // We must copy the block to extend its lifetime
+                let completion_handler = completion_handler.copy();
+
+                // Call AVF's pause method
+                self.machine.pauseWithCompletionHandler(&completion_handler);
+            }
+        });
+
+        // Clone the block for enqueuing, just like in start() / stop()
+        let dispatch_block_clone = dispatch_block.clone();
+        self.queue.exec_block_async(&dispatch_block_clone);
+
+        // Wait for result
+        match rx.recv() {
+            Ok(Ok(())) => Ok(()),
+            Ok(Err(e)) => Err(e),
+            Err(_) => Err("Failed to receive pause completion result!".to_string()),
+        }
+    }
+
+    /// Resume the paused VM synchronously.
+    pub fn resume(&self) -> Result<(), String> {
+        // (Optional) check if can_resume is true.
+        // if !self.can_resume() {
+        //     return Err("Cannot resume the VM in its current state.".into());
+        // }
+
+        let (tx, rx) = std::sync::mpsc::channel();
+
+        // We create a block that calls `resumeWithCompletionHandler:`
+        let dispatch_block = ConcreteBlock::new(move || {
+            let inner_tx = tx.clone();
+            unsafe {
+                let completion_handler = ConcreteBlock::new(move |err: *mut NSError| {
+                    if err.is_null() {
+                        // Resume succeeded
+                        inner_tx.send(Ok(())).unwrap();
+                    } else {
+                        // Resume failed, send error
+                        inner_tx
+                            .send(Err(err.as_mut().unwrap().localized_description()))
+                            .unwrap();
+                    }
+                });
+                // We must copy the block to extend its lifetime
+                let completion_handler = completion_handler.copy();
+
+                // Call AVF's resume method
+                self.machine.resumeWithCompletionHandler(&completion_handler);
+            }
+        });
+
+        // Clone the block for enqueuing, just like in start() / stop()
+        let dispatch_block_clone = dispatch_block.clone();
+        self.queue.exec_block_async(&dispatch_block_clone);
+
+        // Wait for result
+        match rx.recv() {
+            Ok(Ok(())) => Ok(()),
+            Ok(Err(e)) => Err(e),
+            Err(_) => Err("Failed to receive resume completion result!".to_string()),
+        }
+    }
+
     pub fn can_start(&self) -> bool {
         self.queue
             .exec_sync(move || unsafe { println!("can_start: {:?}", self.machine.canStart()); self.machine.canStart() })
