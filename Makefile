@@ -35,6 +35,14 @@ simple-vm: debug
 	#@RUST_BACKTRACE=full ./target/debug/simple-vm --kernel $(shell pwd)/assets/kernel-${KERNEL_VERSION} --initrd $(shell pwd)/assets/initramfs --disk $(shell pwd)/assets/${DISTRO}.img
 	RUST_BACKTRACE=full ./target/debug/simple-vm --kernel $(shell pwd)/assets/kernel-${KERNEL_VERSION} --disk $(shell pwd)/assets/${DISTRO}.img
 
+	#RUST_BACKTRACE=full ./target/debug/simple-vm --kernel $(shell pwd)/assets/kernel-${KERNEL_VERSION} --disk $(shell pwd)/assets/${DISTRO}.ext4
+	# Inside the VM:
+	# ip addr add 192.168.64.10/24 dev enp0s1
+	# ip link set enp0s1 up
+	# ip route add default via 192.168.64.1
+	# echo "nameserver 8.8.8.8" > /etc/resolv.conf
+
+
 .PHONY: check
 check:
 	cargo clippy
