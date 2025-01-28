@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use objc2::rc::{Id, Shared};
 
 use crate::sealed::UnsafeGetId;
@@ -34,10 +35,18 @@ impl VirtualMachineConfiguration {
         config
     }
 
+    pub fn get_cpu_count(&self) -> usize {
+        unsafe { self.inner.CPUCount() }
+    }
+
     pub fn set_cpu_count(&self, cpus: usize) {
         unsafe {
             self.inner.setCPUCount(cpus);
         }
+    }
+
+    pub fn get_memory_size(&self) -> u64 {
+        unsafe { self.inner.memorySize() }
     }
 
     pub fn set_memory_size(&self, memory: u64) {
@@ -128,5 +137,18 @@ impl Default for VirtualMachineConfiguration {
 impl UnsafeGetId<VZVirtualMachineConfiguration> for VirtualMachineConfiguration {
     fn id(&self) -> Id<VZVirtualMachineConfiguration, Shared> {
         self.inner.clone()
+    }
+}
+
+impl Debug for VirtualMachineConfiguration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // Safely check if a boot loader exists without dereferencing it directly.
+        let boot_loader_present = unsafe { self.inner.bootLoader() }.is_some();
+
+        f.debug_struct("VirtualMachineConfiguration")
+            .field("boot_loader_present", &boot_loader_present)
+            .field("cpus", &self.get_cpu_count())
+            .field("memory", &self.get_memory_size())
+            .finish()
     }
 }
