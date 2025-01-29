@@ -34,8 +34,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .arg(
             arg!(-c --commandline <ARGS> "Command line arguments passed to the kernel on startup.")
                 .required(false)
-                .default_value("console=hvc0 root=/dev/vda"),
-                //.default_value("console=hvc0 root=/dev/vda rw"), // *.ext4
+                //.default_value("console=hvc0 root=/dev/vda"),
+                .default_value("console=hvc0 root=/dev/vda rw"), // *.ext4
         )
         .arg(
             arg!(-d --disk <DISKS> "Path to disks.")
@@ -119,17 +119,17 @@ fn main() -> Result<(), Box<dyn Error>> {
             vz::VirtioBlockDeviceConfiguration::new(attachment)
         })
         .collect();
-/*
+
     let network_device = vz::VirtioNetworkDeviceConfiguration::new_with_attachment(
         vz::NATNetworkDeviceAttachment::new(),
     );
     network_device.set_mac_address(vz::MACAddress::new_with_random_locally_administered_address());
- */
+
     //config.set_entropy_devices(vec![entropy_device]);
     config.set_serial_ports(vec![serial_port]);
     //config.set_memory_balloon_devices(vec![memory_balloon]);
     config.set_storage_devices(block_devices);
-    //config.set_network_devices(vec![network_device]);
+    config.set_network_devices(vec![network_device]);
 
     if let Err(msg) = config.validate() {
         println!("Invalid Configuration: {}", msg);
